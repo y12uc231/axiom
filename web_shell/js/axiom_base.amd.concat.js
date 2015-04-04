@@ -89,6 +89,24 @@ if (typeof define !== 'function' && typeof __axiomRequire__ !== 'function') {
   })();
 }
 
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ * @template T
+ */
 define("axiom/core/completer", ["exports"], function(__exports__) {
   "use strict";
 
@@ -116,6 +134,20 @@ define("axiom/core/completer", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=completer.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/core/ephemeral",
   ["axiom/core/error", "axiom/core/event", "axiom/core/completer", "exports"],
@@ -320,6 +352,34 @@ define(
 );
 
 //# sourceMappingURL=ephemeral.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ * An error value used when rejecting a promise.
+ *
+ * TODO(rginda): I haven't used Promises enough yet to know if rejecting a
+ * promise is a friendly thing to do.  It may be that we'd really rather
+ * resolve a promise to an error value for non-fatal failures.  If that's
+ * the case we should change this to a Result class which can indicate
+ * "ok" with a result value or "error" with an Err value.
+ *
+ * @param {!string} name The error class name.
+ * @param {!Array<*>} argNames Argument names of this error instance.
+ * @param {Arguments} args Argument names of this error instance.
+ */
 define("axiom/core/error", ["exports"], function(__exports__) {
  "use strict";
 
@@ -327,34 +387,6 @@ define("axiom/core/error", ["exports"], function(__exports__) {
   __exports__[name] = value;
  }
 
- // Copyright 2014 Google Inc. All rights reserved.
- //
- // Licensed under the Apache License, Version 2.0 (the "License");
- // you may not use this file except in compliance with the License.
- // You may obtain a copy of the License at
- //
- //     http://www.apache.org/licenses/LICENSE-2.0
- //
- // Unless required by applicable law or agreed to in writing, software
- // distributed under the License is distributed on an "AS IS" BASIS,
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- // See the License for the specific language governing permissions and
- // limitations under the License.
-
- /**
-  * @constructor
-  * An error value used when rejecting a promise.
-  *
-  * TODO(rginda): I haven't used Promises enough yet to know if rejecting a
-  * promise is a friendly thing to do.  It may be that we'd really rather
-  * resolve a promise to an error value for non-fatal failures.  If that's
-  * the case we should change this to a Result class which can indicate
-  * "ok" with a result value or "error" with an Err value.
-  *
-  * @param {!string} name The error class name.
-  * @param {!Array<*>} argNames Argument names of this error instance.
-  * @param {Arguments} args Argument names of this error instance.
-  */
  var AxiomError = function(name, argNames, args) {
    if (args.length != argNames.length) {
      throw new Error('Not enough arguments for error: ' + name +
@@ -580,6 +612,33 @@ define("axiom/core/error", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=error.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ * An event is a JavaScript object with addListener, removeListener, and
+ * fire methods.
+ *
+ * @param {function(...)=} opt_firstCallback The optional function to call
+ *     before the observers.
+ * @param {function(...)=} opt_finalCallback The optional function to call
+ *     after the observers.
+ *
+ * @return {function(...)} A function that, when called, invokes all callbacks
+ *     with whatever arguments it was passed.
+ */
 define("axiom/core/event", ["exports"], function(__exports__) {
   "use strict";
 
@@ -587,33 +646,6 @@ define("axiom/core/event", ["exports"], function(__exports__) {
     __exports__[name] = value;
   }
 
-  // Copyright 2014 Google Inc. All rights reserved.
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-
-  /**
-   * @constructor
-   * An event is a JavaScript object with addListener, removeListener, and
-   * fire methods.
-   *
-   * @param {function(...)=} opt_firstCallback The optional function to call
-   *     before the observers.
-   * @param {function(...)=} opt_finalCallback The optional function to call
-   *     after the observers.
-   *
-   * @return {function(...)} A function that, when called, invokes all callbacks
-   *     with whatever arguments it was passed.
-   */
   var AxiomEvent = function(opt_firstCallback, opt_finalCallback) {
     this.firstCallback_ = opt_firstCallback;
     this.finalCallback_ = opt_finalCallback;
@@ -723,6 +755,20 @@ define("axiom/core/event", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=event.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/arguments",
   ["axiom/core/error", "exports"],
@@ -926,6 +972,20 @@ define(
 );
 
 //# sourceMappingURL=arguments.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/base/execute_context",
   ["axiom/core/error", "axiom/core/event", "axiom/core/ephemeral", "axiom/fs/stdio", "axiom/fs/nested_stdio", "axiom/fs/arguments", "axiom/fs/path", "axiom/fs/tty_state", "exports"],
@@ -1340,6 +1400,20 @@ define(
 );
 
 //# sourceMappingURL=execute_context.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/base/file_system",
   ["axiom/core/error", "axiom/core/ephemeral", "axiom/fs/base/open_context", "axiom/fs/stdio", "axiom/fs/path", "axiom/fs/seek_whence", "axiom/fs/data_type", "exports"],
@@ -1481,8 +1555,32 @@ define(
      * @param {Path} toPath
      * @return {!Promise<undefined>}
      */
+    FileSystem.prototype.copy = function(fromPath, toPath) {
+      return this.readFile(fromPath)
+        .then(function(readResult) {
+          return this.writeFile(toPath, readResult.dataType, readResult.data);
+        }.bind(this));
+    };
+
+    /**
+     * Move an entry from a path on a file system to a different path on the
+     * same file system.
+     *
+     * The destination path must refer to a file that does not yet exist, inside a
+     * directory that does.
+     *
+     * @param {Path} fromPath
+     * @param {Path} toPath
+     * @return {!Promise<undefined>}
+     */
     FileSystem.prototype.move = function(fromPath, toPath) {
-      abstract();
+      return this.readFile(fromPath)
+        .then(function(readResult) {
+          return this.writeFile(toPath, readResult.dataType, readResult.data);
+        }.bind(this))
+        .then(function() {
+          return this.unlink(fromPath);
+        }.bind(this));
     };
 
     /**
@@ -1588,6 +1686,20 @@ define(
 );
 
 //# sourceMappingURL=file_system.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/base/file_system_manager",
   ["axiom/core/error", "axiom/core/ephemeral", "axiom/fs/base/open_context", "axiom/fs/base/file_system", "axiom/fs/stdio", "axiom/fs/path", "axiom/fs/seek_whence", "axiom/fs/data_type", "exports"],
@@ -1770,6 +1882,49 @@ define(
     };
 
     /**
+     * @private
+     * @param {Path} fromPath
+     * @param {Path} toPath
+     * @param {isMove} Whether the operation to do is move (vs. copy).
+     * @return {!Promise<undefined>}
+     */
+    FileSystemManager.prototype.copyOrMove_ = function(fromPath, toPath, isMove) {
+      var fromFs = this.getFileSystem_(fromPath);
+      var toFs = this.getFileSystem_(toPath);
+      var promise;
+      if (fromFs == toFs) {
+        promise = isMove ? 
+            fromFs.move(fromPath, toPath) : 
+            fromFs.copy(fromPath, toPath);
+      } else {
+        promise = fromFs.readFile(fromPath)
+          .then(function(readResult) {
+            return toFs.writeFile(toPath, readResult.dataType, readResult.data);
+          })
+          .then(function() {
+            return isMove ? fromFs.unlink(fromPath) : Promise.resolve();
+          });
+      }
+      return promise;
+    };
+
+    /**
+     * Copy an entry from a path on a file system to a different path on the
+     * same file system.
+     *
+     * The destination path must refer to a file that does not yet exist, inside a
+     * directory that does.
+     *
+     * @override
+     * @param {Path} fromPath
+     * @param {Path} toPath
+     * @return {!Promise<undefined>}
+     */
+    FileSystemManager.prototype.copy = function(fromPath, toPath) {
+      return this.copyOrMove_(fromPath, toPath, false);
+    };
+
+    /**
      * Move an entry from a path on a file system to a different path on the
      * same file system.
      *
@@ -1782,8 +1937,7 @@ define(
      * @return {!Promise<undefined>}
      */
     FileSystemManager.prototype.move = function(fromPath, toPath) {
-      var fileSystem = this.getFileSystem_(fromPath);
-      return fileSystem.move(fromPath, toPath);
+      return this.copyOrMove_(fromPath, toPath, true);
     };
 
     /**
@@ -1822,6 +1976,20 @@ define(
 );
 
 //# sourceMappingURL=file_system_manager.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/base/open_context",
   ["axiom/core/completer", "axiom/core/ephemeral", "axiom/core/error", "axiom/core/event", "axiom/fs/open_mode", "axiom/fs/path", "axiom/fs/read_result", "axiom/fs/write_result", "exports"],
@@ -1968,6 +2136,26 @@ define(
 );
 
 //# sourceMappingURL=open_context.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @enum {string}
+ *
+ * List of acceptable values for the 'dataType' parameter used in stat and read
+ * operations.
+ */
 define("axiom/fs/data_type", ["exports"], function(__exports__) {
  "use strict";
 
@@ -2030,6 +2218,20 @@ define("axiom/fs/data_type", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=data_type.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/dom/domfs_util",
   ["axiom/fs/path", "axiom/core/error", "exports"],
@@ -2206,6 +2408,20 @@ define(
 );
 
 //# sourceMappingURL=domfs_util.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/dom/execute_context",
   ["axiom/core/error", "axiom/fs/base/execute_context", "axiom/fs/stdio", "axiom/fs/path", "exports"],
@@ -2254,6 +2470,20 @@ define(
 );
 
 //# sourceMappingURL=execute_context.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/dom/file_system",
   ["axiom/core/error", "axiom/fs/path", "axiom/fs/base/execute_context", "axiom/fs/base/file_system", "axiom/fs/base/file_system_manager", "axiom/fs/stdio", "axiom/fs/js/directory", "axiom/fs/dom/execute_context", "axiom/fs/dom/open_context", "axiom/fs/js/resolve_result", "axiom/fs/dom/domfs_util", "exports"],
@@ -2590,6 +2820,20 @@ define(
 );
 
 //# sourceMappingURL=file_system.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/dom/open_context",
   ["axiom/core/error", "axiom/fs/data_type", "axiom/fs/write_result", "axiom/fs/read_result", "axiom/fs/seek_whence", "axiom/fs/base/file_system", "axiom/fs/base/open_context", "axiom/fs/dom/domfs_util", "axiom/fs/path", "exports"],
@@ -2854,6 +3098,20 @@ define(
 );
 
 //# sourceMappingURL=open_context.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/gdrive/file_system",
   ["axiom/core/error", "axiom/fs/path", "axiom/fs/base/execute_context", "axiom/fs/base/file_system", "axiom/fs/base/file_system_manager", "axiom/fs/gdrive/open_context", "axiom/fs/gdrive/gdrivefs_util", "exports"],
@@ -3028,6 +3286,19 @@ define(
      * @param {Path} toPath
      * @return {!Promise<undefined>}
      */
+    GDriveFileSystem.prototype.copy = function(fromPath, toPath) {
+      this.validatePaths_(fromPath, toPath);
+      return this.refreshOnline().then(function() {
+        return gdrivefsUtil.copyEntry(fromPath, toPath);
+      });
+    };
+
+    /**
+     * @override
+     * @param {Path} fromPath
+     * @param {Path} toPath
+     * @return {!Promise<undefined>}
+     */
     GDriveFileSystem.prototype.move = function(fromPath, toPath) {
       this.validatePaths_(fromPath, toPath);
       return this.refreshOnline().then(function() {
@@ -3075,6 +3346,20 @@ define(
 );
 
 //# sourceMappingURL=file_system.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/gdrive/gdrivefs_util",
   ["axiom/core/error", "axiom/fs/path", "axiom/fs/stat_result", "exports"],
@@ -3734,7 +4019,7 @@ define(
     };
 
     /**
-     * Move an entry to another parent.
+     * Move an entry to another name/parent.
      *
      * @param {Path} fromPath The absolute path of the entry to move.
      * @param {Path} toPath The absolute path to move to. Can include the new target
@@ -3801,6 +4086,20 @@ define(
 );
 
 //# sourceMappingURL=gdrivefs_util.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/gdrive/open_context",
   ["axiom/core/error", "axiom/fs/data_type", "axiom/fs/write_result", "axiom/fs/read_result", "axiom/fs/seek_whence", "axiom/fs/base/file_system", "axiom/fs/base/open_context", "axiom/fs/gdrive/gdrivefs_util", "axiom/fs/path", "exports"],
@@ -3849,9 +4148,13 @@ define(
     var GDriveOpenContext = function(gdrivefs, path, mode, opt_mimeType) {
       OpenContext.call(this, gdrivefs, path, mode);
 
-      // The mimeType of the file: for real files, must either be falsy or match
-      // the actual file's type; for Google docs, must match one of the conversion
-      // formats provided by GDrive.
+      // The MIME type of the file.
+      // For read contexts:
+      // - real files: must either be falsy or match the actual file's type; 
+      // - Google docs: must match one of the conversion formats provided by GDrive.
+      // For write contexts:
+      // - can be anything;
+      // - if omitted, GDrive will auto-detect the type from the file's extension.
       this.mimeType_ = opt_mimeType;
 
       // The contents of the downloaded ("real") or converted (Google doc) file.
@@ -3981,6 +4284,20 @@ define(
 );
 
 //# sourceMappingURL=open_context.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/js/directory",
   ["axiom/core/error", "axiom/fs/path", "axiom/fs/base/file_system", "axiom/fs/js/entry", "axiom/fs/js/executable", "axiom/fs/js/resolve_result", "exports"],
@@ -4203,6 +4520,20 @@ define(
 );
 
 //# sourceMappingURL=directory.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/js/entry",
  ["axiom/fs/path", "axiom/fs/stat_result", "exports"],
@@ -4261,6 +4592,20 @@ define(
 );
 
 //# sourceMappingURL=entry.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/js/executable",
   ["axiom/core/error", "axiom/fs/js/entry", "exports"],
@@ -4321,8 +4666,11 @@ define(
 
       try {
         ret = this.callback_(cx);
-      } catch (ex) {
-        console.log(ex);
+      } catch (err) {
+        // Note: In case a command implementation throws instead of returning a
+        // rejected promise, close the execution context with the error caught.
+        cx.closeError(err);
+        return cx.ephemeralPromise;
       }
 
       if (typeof ret !== 'undefined') {
@@ -4336,6 +4684,20 @@ define(
 );
 
 //# sourceMappingURL=executable.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/js/execute_context",
   ["axiom/fs/base/execute_context", "axiom/fs/stdio", "axiom/fs/path", "axiom/fs/js/executable", "exports"],
@@ -4407,6 +4769,20 @@ define(
 );
 
 //# sourceMappingURL=execute_context.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/js/file_system",
   ["axiom/core/error", "axiom/fs/arguments", "axiom/fs/path", "axiom/fs/stat_result", "axiom/fs/base/file_system", "axiom/fs/base/file_system_manager", "axiom/fs/base/execute_context", "axiom/fs/stdio", "axiom/fs/open_mode", "axiom/fs/js/directory", "axiom/fs/js/executable", "axiom/fs/js/execute_context", "axiom/fs/js/open_context", "axiom/fs/js/resolve_result", "axiom/fs/js/value", "exports"],
@@ -4643,8 +5019,6 @@ define(
                               resolveFrom.suffixList[0])));
       }
 
-      // Link first, then unlink.  Failure mode is two copies of the file rather
-      // than zero.
       return resolveTo.entry.link(targetName, resolveFrom.entry);
     };
 
@@ -4826,6 +5200,20 @@ define(
 );
 
 //# sourceMappingURL=file_system.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/js/open_context",
   ["axiom/core/error", "axiom/fs/base/open_context", "axiom/fs/js/entry", "axiom/fs/js/value", "axiom/fs/path", "exports"],
@@ -4931,6 +5319,21 @@ define(
 );
 
 //# sourceMappingURL=open_context.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef FileSystem$$module$axiom$fs$base$file_system */
 define("axiom/fs/js/resolve_result", ["exports"], function(__exports__) {
  "use strict";
 
@@ -4938,21 +5341,6 @@ define("axiom/fs/js/resolve_result", ["exports"], function(__exports__) {
   __exports__[name] = value;
  }
 
- // Copyright 2014 Google Inc. All rights reserved.
- //
- // Licensed under the Apache License, Version 2.0 (the "License");
- // you may not use this file except in compliance with the License.
- // You may obtain a copy of the License at
- //
- //     http://www.apache.org/licenses/LICENSE-2.0
- //
- // Unless required by applicable law or agreed to in writing, software
- // distributed under the License is distributed on an "AS IS" BASIS,
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- // See the License for the specific language governing permissions and
- // limitations under the License.
-
- /** @typedef FileSystem$$module$axiom$fs$base$file_system */
  var BaseFileSystem;
 
  /** @typedef JsEntry$$module$axiom$fs$js$entry */
@@ -4971,6 +5359,20 @@ define("axiom/fs/js/resolve_result", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=resolve_result.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/js/value",
   ["axiom/core/error", "axiom/fs/data_type", "axiom/fs/base/open_context", "axiom/fs/js/entry", "exports"],
@@ -5050,6 +5452,20 @@ define(
 );
 
 //# sourceMappingURL=value.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/nested_stdio",
  ["axiom/fs/stdio", "axiom/fs/stream/readable_stream_forwarder", "exports"],
@@ -5097,6 +5513,22 @@ define(
 );
 
 //# sourceMappingURL=nested_stdio.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+/** @constructor */
 define("axiom/fs/open_mode", ["exports"], function(__exports__) {
   "use strict";
 
@@ -5151,6 +5583,24 @@ define("axiom/fs/open_mode", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=open_mode.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ * @param {string} spec An absolute path specification ('root:path').
+ */
 define("axiom/fs/path", ["exports"], function(__exports__) {
   "use strict";
 
@@ -5158,24 +5608,6 @@ define("axiom/fs/path", ["exports"], function(__exports__) {
     __exports__[name] = value;
   }
 
-  // Copyright 2014 Google Inc. All rights reserved.
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-
-  /**
-   * @constructor
-   * @param {string} spec An absolute path specification ('root:path').
-   */
   var Path = function(spec) {
     this.originalSpec = spec; // the path you gave.
 
@@ -5194,6 +5626,9 @@ define("axiom/fs/path", ["exports"], function(__exports__) {
     }
 
     var elements = [];
+
+    // Convert Windows-style separators.
+    spec = spec.replace(/\\/g, '/');
 
     var specNames = Path.split_(spec.substr(colonIndex + 1));
     if (!specNames) {
@@ -5388,6 +5823,21 @@ define("axiom/fs/path", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=path.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef {SeekWhence$$module$axiom$fs$seek_whence} */
 define("axiom/fs/read_result", ["exports"], function(__exports__) {
   "use strict";
 
@@ -5395,21 +5845,6 @@ define("axiom/fs/read_result", ["exports"], function(__exports__) {
     __exports__[name] = value;
   }
 
-  // Copyright (c) 2015 Google Inc. All rights reserved.
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-
-  /** @typedef {SeekWhence$$module$axiom$fs$seek_whence} */
   var SeekWhence;
 
   /** @typedef {DataType$$module$axiom$fs$data_type} */
@@ -5434,6 +5869,21 @@ define("axiom/fs/read_result", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=read_result.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @enum {string} */
 define("axiom/fs/seek_whence", ["exports"], function(__exports__) {
   "use strict";
 
@@ -5452,6 +5902,26 @@ define("axiom/fs/seek_whence", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=seek_whence.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ *
+ * @param {Object} props File properties; allowed values are the same as this
+ *   class' own properties.
+ */
 define("axiom/fs/stat_result", ["exports"], function(__exports__) {
  "use strict";
 
@@ -5459,26 +5929,6 @@ define("axiom/fs/stat_result", ["exports"], function(__exports__) {
   __exports__[name] = value;
  }
 
- // Copyright 2015 Google Inc. All rights reserved.
- //
- // Licensed under the Apache License, Version 2.0 (the "License");
- // you may not use this file except in compliance with the License.
- // You may obtain a copy of the License at
- //
- //     http://www.apache.org/licenses/LICENSE-2.0
- //
- // Unless required by applicable law or agreed to in writing, software
- // distributed under the License is distributed on an "AS IS" BASIS,
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- // See the License for the specific language governing permissions and
- // limitations under the License.
-
- /**
-  * @constructor
-  *
-  * @param {Object} props File properties; allowed values are the same as this
-  *   class' own properties.
-  */
  var StatResult = function(props) {
    /** @type {number} */
    this.mode = props.mode || 0;
@@ -5497,6 +5947,21 @@ define("axiom/fs/stat_result", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=stat_result.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef ReadableStream$$module$axiom$fs$stream$readable_stream */
 define("axiom/fs/stdio", ["exports"], function(__exports__) {
  "use strict";
 
@@ -5504,21 +5969,6 @@ define("axiom/fs/stdio", ["exports"], function(__exports__) {
   __exports__[name] = value;
  }
 
- // Copyright (c) 2015 Google Inc. All rights reserved.
- //
- // Licensed under the Apache License, Version 2.0 (the "License");
- // you may not use this file except in compliance with the License.
- // You may obtain a copy of the License at
- //
- //     http://www.apache.org/licenses/LICENSE-2.0
- //
- // Unless required by applicable law or agreed to in writing, software
- // distributed under the License is distributed on an "AS IS" BASIS,
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- // See the License for the specific language governing permissions and
- // limitations under the License.
-
- /** @typedef ReadableStream$$module$axiom$fs$stream$readable_stream */
  var ReadableStream;
 
  /** @typedef WritableStream$$module$axiom$fs$stream$writable_stream */
@@ -5544,6 +5994,20 @@ define("axiom/fs/stdio", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=stdio.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/stdio_source",
  ["axiom/fs/stdio", "axiom/fs/stream/memory_stream_buffer", "exports"],
@@ -5608,6 +6072,23 @@ define(
 );
 
 //# sourceMappingURL=stdio_source.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ */
 define("axiom/fs/stream/axiom_stream", ["exports"], function(__exports__) {
  "use strict";
 
@@ -5623,6 +6104,20 @@ define("axiom/fs/stream/axiom_stream", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=axiom_stream.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "axiom/fs/stream/memory_stream_buffer",
   ["axiom/core/error", "axiom/core/event", "axiom/fs/stream/queue", "axiom/fs/stream/readable_memory_stream", "axiom/fs/stream/writable_memory_stream", "exports"],
@@ -5769,6 +6264,27 @@ define(
 );
 
 //# sourceMappingURL=memory_stream_buffer.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * Simple abstraction over a FIFO queue.
+ * Current implementation is O(n) when dequeuing. It could be replaced
+ * with a double stack, a sliding window array, a double linked list, etc.
+ *
+ * @constructor
+ */
 define("axiom/fs/stream/queue", ["exports"], function(__exports__) {
  "use strict";
 
@@ -5814,6 +6330,20 @@ define("axiom/fs/stream/queue", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=queue.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/stream/readable_memory_stream",
  ["axiom/core/error", "axiom/core/event", "axiom/fs/stream/axiom_stream", "exports"],
@@ -5883,6 +6413,20 @@ define(
 );
 
 //# sourceMappingURL=readable_memory_stream.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/stream/readable_stream",
  ["axiom/core/event", "exports"],
@@ -5940,6 +6484,20 @@ define(
 );
 
 //# sourceMappingURL=readable_stream.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/stream/readable_stream_forwarder",
  ["axiom/core/event", "axiom/fs/stream/axiom_stream", "exports"],
@@ -6028,6 +6586,20 @@ define(
 );
 
 //# sourceMappingURL=readable_stream_forwarder.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
  "axiom/fs/stream/writable_memory_stream",
  ["axiom/core/error", "axiom/fs/stream/axiom_stream", "exports"],
@@ -6089,6 +6661,21 @@ define(
 );
 
 //# sourceMappingURL=writable_memory_stream.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef function():void */
 define("axiom/fs/stream/writable_stream", ["exports"], function(__exports__) {
  "use strict";
 
@@ -6096,21 +6683,6 @@ define("axiom/fs/stream/writable_stream", ["exports"], function(__exports__) {
   __exports__[name] = value;
  }
 
- // Copyright 2015 Google Inc. All rights reserved.
- //
- // Licensed under the Apache License, Version 2.0 (the "License");
- // you may not use this file except in compliance with the License.
- // You may obtain a copy of the License at
- //
- //     http://www.apache.org/licenses/LICENSE-2.0
- //
- // Unless required by applicable law or agreed to in writing, software
- // distributed under the License is distributed on an "AS IS" BASIS,
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- // See the License for the specific language governing permissions and
- // limitations under the License.
-
- /** @typedef function():void */
  var WriteCallback;
 
  var WritableStream = function() {};
@@ -6129,6 +6701,26 @@ define("axiom/fs/stream/writable_stream", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=writable_stream.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ *
+ * Null values indicate that the given property is not known.  Unknown
+ * properties are not propagated in the copyFrom/copyTo methods.
+ */
 define("axiom/fs/tty_state", ["exports"], function(__exports__) {
   "use strict";
 
@@ -6233,6 +6825,21 @@ define("axiom/fs/tty_state", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=tty_state.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef {SeekWhence$$module$axiom$fs$seek_whence} */
 define("axiom/fs/write_result", ["exports"], function(__exports__) {
   "use strict";
 
@@ -6240,21 +6847,6 @@ define("axiom/fs/write_result", ["exports"], function(__exports__) {
     __exports__[name] = value;
   }
 
-  // Copyright (c) 2015 Google Inc. All rights reserved.
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-
-  /** @typedef {SeekWhence$$module$axiom$fs$seek_whence} */
   var SeekWhence;
 
   /** @typedef {DataType$$module$axiom$fs$data_type} */
@@ -6279,6 +6871,7 @@ define("axiom/fs/write_result", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=write_result.js.map
+// GENERATED BY grunt make_version_module.
 define("axiom/version", ["exports"], function(__exports__) {
   "use strict";
 

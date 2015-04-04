@@ -1,3 +1,164 @@
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+define(
+  "wash/chrome_agent_client",
+  ["axiom/core/error", "axiom/core/completer", "exports"],
+  function(axiom$core$error$$, axiom$core$completer$$, __exports__) {
+    "use strict";
+
+    function __es6_export__(name, value) {
+      __exports__[name] = value;
+    }
+
+    var AxiomError;
+    AxiomError = axiom$core$error$$["default"];
+    var Completer;
+    Completer = axiom$core$completer$$["default"];
+    var chromeAgentClient = {};
+    __es6_export__("chromeAgentClient", chromeAgentClient);
+    __es6_export__("default", chromeAgentClient);
+
+    chromeAgentClient.AGENT_APP_ID_ = 'lfbhahfblgmngkkgbgbccedhhnkkhknb';
+    chromeAgentClient.AGENT_INSTALL_URL_ =
+        'https://chrome.google.com/webstore/detail/' +
+        chromeAgentClient.AGENT_APP_ID_;
+
+    /**
+     * @return {void}
+     */
+    chromeAgentClient.installAgent = function() {
+      window.open(chromeAgentClient.AGENT_INSTALL_URL_);
+    };
+
+    /**
+     * @param {string} api
+     * @return {void}
+     */
+    chromeAgentClient.openApiOnlineDoc = function(api) {
+      var urlSuffix = 'api_index';
+      if (api) {
+        var parts = api.split('.');
+        if (parts[0] === 'chrome')
+          parts.shift();
+
+        if (parts.length == 1)
+          urlSuffix = parts[0];
+        else if (parts.length == 2)
+          urlSuffix = parts[0] + '#method-' + parts[1];
+        else if (parts.length === 3)
+          urlSuffix = parts[0] + '_' + parts[1] + '#method-' + parts[2];
+      }
+      var url = 'https://developer.chrome.com/extensions/' + urlSuffix;
+      window.open(url);
+    };
+
+    /**
+     * @param {!string} api
+     * @param {!Array<*>} args
+     * @param {!{timeout: number}} options
+     * @return {!Promise<*>} Result returned by the API.
+     */
+    chromeAgentClient.callApi = function(api, args, options) {
+      if (!/^chrome./.test(api))
+        api = 'chrome.' + api;
+      return chromeAgentClient.sendRequest_(
+        {
+          type: 'call_api',
+          api: api,
+          args: args,
+          options: options
+        }
+      );
+    };
+
+    /**
+     * @param {!string} code
+     * @param {!(Array<number>|string)} tabIds
+     * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
+     * @return {!Promise<*>} Result returned by the API.
+     */
+    chromeAgentClient.executeScriptInTabs = function(code, tabIds, options) {
+      return chromeAgentClient.sendRequest_(
+        {
+          type: 'execute_script',
+          tabIds: tabIds,
+          code: code,
+          options: options
+        }
+      );
+    };
+
+    /**
+     * @param {!string} css
+     * @param {!(Array<number>|string)} tabIds
+     * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
+     * @return {!Promise<*>} Result returned by the API.
+     */
+    chromeAgentClient.insertCssIntoTabs = function(css, tabIds, options) {
+      return chromeAgentClient.sendRequest_(
+        {
+          type: 'insert_css',
+          tabIds: tabIds,
+          css: css,
+          options: options
+        }
+      );
+    };
+
+    /**
+     * @param {!Object<string, *>} request
+     * @return {!Promise<*>} Result returned by the API.
+     */
+    chromeAgentClient.sendRequest_ = function(request) {
+      return new Promise(function(resolve, reject) {
+        chrome.runtime.sendMessage(
+          chromeAgentClient.AGENT_APP_ID_,
+          request,
+          {}, // options
+          function(response) {
+            if (typeof response === 'undefined') {
+              reject(new AxiomError.Missing(
+                  'Chrome Agent is not installed'));
+            } else if (!response.success) {
+              reject(new AxiomError.Runtime(
+                  'Chrome Agent error: ' + response.error));
+            } else {
+              resolve(response.result);
+            }
+          }
+        );
+      });
+    };
+  }
+);
+
+//# sourceMappingURL=chrome_agent_client.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/cat",
   ["axiom/core/error", "axiom/fs/path", "exports"],
@@ -13,8 +174,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var CAT_CMD_USAGE_STRING = 'usage: cat [file...]';
-
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
 
@@ -23,7 +182,10 @@ define(
 
       var list = cx.getArg('_', []);
       if (!list.length || cx.getArg('help')) {
-        cx.stdout.write(CAT_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: cat <file> ...',
+          'Echo one or more files to stdout.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
@@ -33,7 +195,7 @@ define(
 
       var catNext = function() {
         if (!list.length) {
-          return;
+          return null;
         }
 
         /** @type {string} */
@@ -76,39 +238,318 @@ define(
 );
 
 //# sourceMappingURL=cat.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
- "wash/exe/clear",
- ["wash/termcap", "exports"],
- function(wash$termcap$$, __exports__) {
-  "use strict";
+  "wash/exe/chrome",
+  ["axiom/core/error", "wash/chrome_agent_client", "exports"],
+  function(axiom$core$error$$, wash$chrome_agent_client$$, __exports__) {
+    "use strict";
 
-  function __es6_export__(name, value) {
-   __exports__[name] = value;
+    function __es6_export__(name, value) {
+      __exports__[name] = value;
+    }
+
+    var AxiomError;
+    AxiomError = axiom$core$error$$["default"];
+    var chromeAgentClient;
+    chromeAgentClient = wash$chrome_agent_client$$["default"];
+
+    /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
+    var JsExecuteContext;
+
+    var main = function(cx) {
+      if (!navigator || !/Chrome/.test(navigator.userAgent)) {
+        cx.closeError(
+            new AxiomError.Incompatible('runtime', 'Supported under Chrome only'));
+        return;
+      }
+
+      cx.ready();
+
+      var help = cx.getArg('help', false);
+      var installAgent = cx.getArg('install-agent', false);
+      var apiDoc = cx.getArg('api-doc', false);
+      var api = cx.getArg('call-api', false);
+      var script = cx.getArg('exec-script', false);
+      var css = cx.getArg('insert-css', false);
+      var argv = cx.getArg('_', []);
+
+      // Allow exactly 1 of the mutually exclusive switches and verify the number
+      // of free arguments.
+      if (help ||
+          (api + apiDoc + script + css + installAgent != 1) ||
+          (api && argv.length < 1) ||
+          (apiDoc && argv.length > 1) ||
+          (script && argv.length < 2) ||
+          (css && argv.length < 2) ||
+          (installAgent && argv.length > 0)) {
+        cx.stdout.write([
+          'Usage:',
+          '',
+          'chrome -a|--call-api <API method> [<arg1>...] [-t|--timeout <ms>]',
+          '  Executes a Chrome Extensions API call on the browser side and',
+          '  returns the result.',
+          '',
+          'chrome -s|--exec-script <code> <tab_id1>...|all|window',
+          '    [-t|--timeout <ms>] [--all-frames] [--run-at]',
+          '  Executes a script in the top frame or all frames of the specified',
+          '  tab(s), returning the results as a map of tabId => script result.',
+          '',
+          'chrome -c|--insert-css <css> <tab_id1>...|all|window',
+          '    [-t|--timeout <ms>] [--all-frames] [--run-at]',
+          '  Injects a CSS fragment into the top frame or all frames of the',
+          '  specified tab(s).',
+          '',
+          'chrome -d|--api-doc [<API or API method>]',
+          '  Opens the Chrome Extensions API documentation for the given API',
+          '  or API method in a new tab. The "chrome." prefix may be omitted.',
+          '',
+          'chrome --install-agent',
+          '  Initiates installation of the Chrome Agent extension by opening its',
+          '  Chrome Web Store page in a new tab.',
+          '',
+          'NOTES:',
+          '1) The "chrome." prefix may be omitted in API names.',
+          '2) --call-api, --exec-script and --insert-css require the Chrome Agent',
+          '   extension to be installed. See --install-agent.',
+          '3) If multiple tabs are specified, the results are returned as a map',
+          '  with tab IDs as keys.'
+        ].join('\r\n') + '\r\n');
+        cx.closeOk();
+        return;
+      }
+
+      if (installAgent) {
+        chromeAgentClient.installAgent();
+        cx.closeOk();
+        return;
+      }
+
+      if (apiDoc) {
+        chromeAgentClient.openApiOnlineDoc(argv[0]);
+        cx.closeOk();
+        return;
+      }
+
+      var options = {
+        timeout: /** number */ cx.getArg('timeout', 1000),
+        allFrames: /** boolean */ cx.getArg('all-frames', false),
+        runAt: /** string */ cx.getArg('run-at', '')
+      };
+
+      var promise =
+          api ?    callApi_(argv[0], argv.slice(1), options) :
+          script ? executeScript_(argv[0], argv.slice(1), options) :
+          css ?    insertCss_(argv[0], argv.slice(1), options) :
+                   null;
+
+      promise
+        .then(function(result) {
+          if (typeof result !== 'undefined') {
+            if (typeof result === 'object')
+              result = JSON.stringify(result, null, 2);
+            cx.stdout.write(result + '\n');
+          }
+          cx.closeOk();
+        }).catch(function(err) {
+          if (AxiomError.Missing.test(err)) {
+            cx.closeError(new AxiomError.Missing(
+                'This command requires Chrome Agent extension to be installed. ' +
+                'Rerun with the --install-agent switch to install.'));
+          } else {
+            cx.closeError(err);
+          }
+        });
+    };
+
+    __es6_export__("main", main);
+    __es6_export__("default", main);
+
+    main.signature = {
+      'help|h': '?',
+      'install-agent': '?',
+      'api-doc|d': '?',
+      'call-api|a': '?',
+      'exec-script|s': '?',
+      'insert-css|c': '?',
+      'all-frames': '?',
+      'run-at': '$',
+      'timeout|t': '*',
+      '_': '@'
+    };
+
+    /**
+     * @param {!string} api
+     * @param {!Array<*>} args
+     * @param {!{timeout: number}} options
+     * @return {!Promise<*>}
+     */
+    var callApi_ = function(api, args, options) {
+      return chromeAgentClient.callApi(api, args, options);
+    };
+
+    /**
+     * @param {!string} code
+     * @param {!Array<number|string>} tabIds
+     * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
+     * @return {!Promise<*>}
+     */
+    var executeScript_ = function(code, tabIds, options) {
+      return sanitizeTabIds_(tabIds)
+        .then(function(sTabIds) {
+          return chromeAgentClient.executeScriptInTabs(code, sTabIds, options)
+            .then(function(/** !Object<string, *>*/tabResults) {
+              return formatTabResults_(tabResults, isExplicitSingleTab_(tabIds));
+            });
+        });
+    };
+
+    /**
+     * @param {!string} css
+     * @param {!Array<number|string>} tabIds
+     * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
+     * @return {!Promise<*>}
+     */
+    var insertCss_ = function(css, tabIds, options) {
+      return sanitizeTabIds_(tabIds)
+        .then(function(sTabIds) {
+          return chromeAgentClient.insertCssIntoTabs(css, sTabIds, options)
+            .then(function(/** !Object<string, *>*/tabResults) {
+              return formatTabResults_(tabResults, isExplicitSingleTab_(tabIds));
+            });
+        });
+    };
+
+    /**
+     * @param {!Array<number>|string} tabIds
+     * @return {!Promise<!(Array<number>|string)>}
+     */
+    var sanitizeTabIds_ = function(tabIds) {
+      if (tabIds.length === 1 && (tabIds[0] === 'all' || tabIds[0] === 'window')) {
+        return Promise.resolve(tabIds[0]);
+      }
+
+      for (var i = 0; i < tabIds.length; ++i) {
+        if (typeof tabIds[i] !== 'number') {
+          return Promise.reject(
+              new AxiomError.TypeMismatch('tab IDs must be numbers', tabIds));
+        }
+      }
+
+      return Promise.resolve(tabIds);
+    };
+
+    /**
+     * @param {!Array<number|string>} tabIds
+     * @return {!boolean}
+     */
+    var isExplicitSingleTab_ = function(tabIds) {
+      return tabIds.length == 1 && typeof tabIds[0] === 'number';
+    };
+
+    /**
+     * @param {!Object<string, *>} tabResults
+     * @param {boolean} omitTabIds
+     * @return {*}
+     */
+    var formatTabResults_ = function(tabResults, omitTabIds) {
+      if (omitTabIds) {
+        var values = [];
+        for (var id in tabResults)
+          values.push(tabResults[id]);
+        return values.length === 1 ? values[0] : values;
+      }
+      return tabResults;
+    };
   }
+);
 
-  var Termcap;
-  Termcap = wash$termcap$$["default"];
+//# sourceMappingURL=chrome.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-  /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
-  var JsExecuteContext;
+define(
+  "wash/exe/clear",
+  ["wash/termcap", "exports"],
+  function(wash$termcap$$, __exports__) {
+    "use strict";
 
-  var main = function(cx) {
-    cx.ready();
-    var tc = new Termcap();
-    var output = tc.output('%clear-terminal()%set-row-column(row, column)',
-                           {row: 1, column: 1});
-    cx.stdout.write(output);
-    cx.closeOk();
-  };
+    function __es6_export__(name, value) {
+      __exports__[name] = value;
+    }
 
-  __es6_export__("main", main);
-  __es6_export__("default", main);
+    var Termcap;
+    Termcap = wash$termcap$$["default"];
 
-  main.signature = {};
- }
+    /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
+    var JsExecuteContext;
+
+    var main = function(cx) {
+      cx.ready();
+      if (cx.getArg('help')) {
+        cx.stdout.write([
+          'usage: clear',
+          'Clear the terminal.'
+        ].join('\r\n') + '\r\n');
+        cx.closeOk();
+        return;
+      }
+
+      var tc = new Termcap();
+      var output = tc.output('%clear-terminal()%set-row-column(row, column)',
+                             {row: 1, column: 1});
+      cx.stdout.write(output);
+      cx.closeOk();
+    };
+
+    __es6_export__("main", main);
+    __es6_export__("default", main);
+
+    main.signature = {
+      'help|h': '?'
+    };
+  }
 );
 
 //# sourceMappingURL=clear.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/cp",
   ["axiom/core/error", "axiom/fs/path", "exports"],
@@ -124,8 +565,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var CP_CMD_USAGE_STRING = 'usage: cp sourceFile targetFile';
-
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
 
@@ -134,7 +573,21 @@ define(
 
       var list = cx.getArg('_', []);
       if (list.length != 2 || cx.getArg('help')) {
-        cx.stdout.write(CP_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: cp <source-file> <destination-file>',
+          'Copy source file to destination file.',
+          '',
+          'If the destination file is a directory, the source file will be copied',
+          'using the same name.  This doe not support recursive directory copies',
+          'or multiple source files as of yet.',
+          '',
+          'If both locations are on the same file system this will try to perform ',
+          'an atomic native copy, if available, which will preserve the file\'s ',
+          'native format and most of its attributes, such as permissions.  ',
+          'If not, the command will read the contents of the source file, ',
+          'possibly with format conversion, and write it to a newly created ',
+          'destination file.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
@@ -151,15 +604,12 @@ define(
       /** @type {Path} */
       var toPath = Path.abs(pwd, toPathSpec);
 
-      var fileSystem = cx.fileSystemManager;
-
-      fileSystem.readFile(fromPath).then(function(readResult) {
-        return fileSystem.writeFile(toPath, readResult.dataType, readResult.data);
-      }).then(function() {
-        cx.closeOk();
-      }).catch(function(error) {
-        cx.closeError(error);
-      });
+      cx.fileSystemManager.copy(fromPath, toPath)
+        .then(function() {
+          cx.closeOk();
+        }).catch(function(err) {
+          cx.closeError(err);
+        });
     };
 
     __es6_export__("main", main);
@@ -173,6 +623,21 @@ define(
 );
 
 //# sourceMappingURL=cp.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
 define("wash/exe/echo", ["exports"], function(__exports__) {
   "use strict";
 
@@ -180,21 +645,6 @@ define("wash/exe/echo", ["exports"], function(__exports__) {
     __exports__[name] = value;
   }
 
-  // Copyright 2014 Google Inc. All rights reserved.
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-
-  /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
   var JsExecuteContext;
 
   var help = [
@@ -252,6 +702,20 @@ define("wash/exe/echo", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=echo.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/import",
   ["axiom/core/error", "axiom/core/completer", "axiom/fs/data_type", "axiom/fs/path", "exports"],
@@ -276,8 +740,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var IMPORT_CMD_USAGE_STRING = 'usage: import [target]';
-
     /** @typedef ExecuteContext$$module$axiom$fs$base$execute_context */
     var ExecuteContext;
 
@@ -289,8 +751,21 @@ define(
 
       /** @type {Array<string>} */
       var list = cx.getArg('_', []);
+
+      /** @type {boolean} */
+      var forceSingleFile = cx.getArg('file');
+
       if (list.length > 1 || cx.getArg('help')) {
-        cx.stdout.write(IMPORT_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: import [<target-directory>] [-f|--file]',
+          'Import a directory from the local file system.',
+          '',
+          'If <target-directory> is provided, the file(s) will be imported there.',
+          'If not, they will be imported into the current directory.',
+          '',
+          'Imports a directory by default (if supported by browser).  If -f is',
+          'provided, only a single file is imported.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
@@ -306,13 +781,14 @@ define(
       var command = new ImportCommand(cx);
 
       // NOTE: cx will get closed in ImportCommand.prototype.handleFileSelect_().
-      command.import(path);
+      command.import(path, forceSingleFile);
     };
 
     __es6_export__("main", main);
     __es6_export__("default", main);
 
     main.signature = {
+      'file|f': '?',
       'help|h': '?',
       '_': '@'
     };
@@ -333,24 +809,50 @@ define(
       /** @private @type {FileSystemManager} */
       this.fsm_ = cx.fileSystemManager;
 
-      /** @private @type {Element} */
+      /** @type {Element} An element which, if we return focus to it, will tell us
+                          that the user has canceled the import. */
+      this.dummyFocusInput_ = null;
+
+      /** @type {Element} The file / directory chooser input. */
       this.input_ = null;
+
+      /** @private @type {?boolean} Force import of single file*/
+      this.singleFile_ = null;
+
+      /** @type {Element} The originally focused element to restore. */
+      this.originalFocusElement_ = null;
+
+      /** @type {boolean} Files have been selected (remove cancel handler). */
+      this.filesChosen_ = false;
     };
 
     /**
      * Prompt the user to import a directory or file
      *
      * @param {Path} Destination path
+     * @param {boolean} Import single file
      * @return {void}
      */
-    ImportCommand.prototype.import = function(destination) {
+    ImportCommand.prototype.import = function(destination, forceSingleFile) {
       this.destination = destination;
+      this.singleFile_ = forceSingleFile;
+      this.originalFocusElement_ = document.activeElement;
+
+      /** @type {Element} */
+      var dummyFocusInput = document.createElement('input');
+      dummyFocusInput.setAttribute('type', 'text');
+      document.body.appendChild(dummyFocusInput);
+      dummyFocusInput.focus();
+      this.dummyFocusInput_ = dummyFocusInput;
 
       /** @type {Element} */
       var input = document.createElement('input');
       input.setAttribute('type', 'file');
-      input.setAttribute('webkitdirectory', '');
-      input.setAttribute('multiple', 'webkitdirectory');
+      if (!forceSingleFile) {
+        input.setAttribute('webkitdirectory', '');
+        input.setAttribute('multiple', '');
+      }
+      
       input.style.cssText =
           'position: absolute;' +
           'right: 0';
@@ -362,6 +864,14 @@ define(
       document.body.appendChild(input);
 
       input.click();
+
+      // Localize the handler so we can remove it later.
+      this.handleFileCancel_ = this.handleFileCancel_.bind(this);
+
+      // Cancellation is detected by creating a text field and giving it focus.
+      // When the field gets focus again, and the `change` handler (above) hasn't
+      // fired, we know that a cancel happened.
+      dummyFocusInput.addEventListener('focus', this.handleFileCancel_, false);
     };
 
     /**
@@ -384,6 +894,24 @@ define(
     };
 
     /**
+     * Handle the cancelation of choosing a file / directory.
+     *
+     * @private
+     * @param {Event} evt
+     * @return {void}
+     */
+    ImportCommand.prototype.handleFileCancel_ = function(evt) {
+      // This handles a race condition between the cancel and select events which
+      // cause spurious results This keeps things in the right order (100ms is
+      // probably overkill, but mostly undetectable).
+      setTimeout(function() {
+        if (this.filesChosen_) return;
+        this.destroy_();
+        this.cx_.closeError(new AxiomError.Missing('file selection'));    
+      }.bind(this), 100);
+    }
+
+    /**
      * Handle the selection of a file on this.input_
      *
      * @private
@@ -391,6 +919,8 @@ define(
      * @return {void}
      */
     ImportCommand.prototype.handleFileSelect_ = function(evt) {
+      this.filesChosen_ = true;
+
       /** @type {FileList} */
       var files = evt.target.files;
 
@@ -426,8 +956,15 @@ define(
         /** @type {!File} */
         var f = files[i];
 
-        var path = Path.abs(this.destination.spec,
-            /** @type {{webkitRelativePath: string}} */(f).webkitRelativePath);
+        /** @type {string} */
+        var relativePath =
+            /** @type {!{webkitRelativePath: string}} */(f).webkitRelativePath
+
+        if (relativePath === undefined || this.singleFile_) {
+          relativePath = /** @type {{name: string}} */(f).name;
+        }
+
+        var path = Path.abs(this.destination.spec, relativePath);
 
         var reader = new FileReader();
 
@@ -448,7 +985,7 @@ define(
       }
 
       Promise.all(copyPromises).then(function (values) {
-        document.body.removeChild(this.input_);
+        this.destroy_();
 
         /** @type {Array<Error>} */
         var errors = values.filter(function(element) { return element !== null; });
@@ -460,10 +997,41 @@ define(
         }
       }.bind(this));
     };
+
+    /**
+     * Cleanup after command finishes
+     *
+     * @private
+     * @return {void}
+     */
+    ImportCommand.prototype.destroy_ = function() {
+      document.body.removeChild(this.input_);
+      document.body.removeChild(this.dummyFocusInput_);
+
+      // TODO(umop): Fix focus issue
+      // Return focus to the `activeElement` which is the iframe with `hterm` in it.
+      // This causes the cursor to lose its focus style (hollow cursor instead of
+      // block cursor), but does not actually cause the terminal to lose focus.
+      this.originalFocusElement_.focus();
+    }
   }
 );
 
 //# sourceMappingURL=import.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/ls",
   ["axiom/core/error", "axiom/fs/path", "wash/string_utils", "exports"],
@@ -522,6 +1090,17 @@ define(
 
     var main = function(cx) {
       cx.ready();
+
+      if (cx.getArg('help')) {
+        cx.stdout.write([
+          'usage: ls [<path>]',
+          'List a file or the contents of a directory.',
+          '',
+          'If <path> is not provided it defaults to the current directory.'
+        ].join('\r\n') + '\r\n');
+        cx.closeOk();
+        return;
+      }
 
       /** @type {Array<string>} */
       var pathList = cx.getArg('_', [cx.getPwd()]);
@@ -608,6 +1187,7 @@ define(
     };
 
     main.signature = {
+      'help|h': '?',
       '_': '@'
     };
 
@@ -616,6 +1196,20 @@ define(
 );
 
 //# sourceMappingURL=ls.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/mkdir",
   ["axiom/core/error", "axiom/fs/path", "exports"],
@@ -631,8 +1225,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var MKDIR_CMD_USAGE_STRING = 'usage: mkdir directory ...';
-
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
 
@@ -641,7 +1233,12 @@ define(
 
       var list = cx.getArg('_', []);
       if (list.length === 0 || cx.getArg('help')) {
-        cx.stdout.write(MKDIR_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: mkdir <path> ...',
+          'Create one or more new directories.',
+          '',
+          'All parent directories must already exist.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
@@ -692,6 +1289,20 @@ define(
 );
 
 //# sourceMappingURL=mkdir.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/mount.gdrive",
   ["axiom/fs/gdrive/file_system", "exports"],
@@ -716,15 +1327,23 @@ define(
     var main = function(cx) {
       cx.ready();
 
-      if (cx.getArg('_', []).length > 0 || cx.getArg('help')) {
-        cx.stdout.write(MOUNT_GDRIVE_CMD_USAGE_STRING);
+      if (cx.getArg('help')) {
+        cx.stdout.write([
+          'usage: mount.gdrive [-n|--name <name>]',
+          'Mount a Google Drive file system.',
+          '',
+          'If -n is provided, it\'ll be used as the name of the new file system.',
+          '',
+          'This command will pop up a new window for authentication purposes.  ',
+          'You may have to disable your popup blocker to see it.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
 
       /** @type {!FileSystemManager} */
       var fsm = cx.fileSystemManager;
-      GDriveFileSystem.mount(fsm, 'gdrive')
+      GDriveFileSystem.mount(fsm, cx.getArg('name', 'gdrive'))
         .then(function() {
           cx.closeOk();
         })
@@ -737,7 +1356,7 @@ define(
 
     main.signature = {
       'help|h': '?',
-      '_': '@'
+      'name|n': '$'
     };
 
     __es6_export__("default", main);
@@ -745,6 +1364,20 @@ define(
 );
 
 //# sourceMappingURL=mount.gdrive.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/mount",
   ["axiom/core/error", "axiom/fs/path", "wash/string_utils", "exports"],
@@ -773,13 +1406,22 @@ define(
     var main = function(cx) {
       cx.ready();
 
-      if (cx.getArg('_', []).length > 1 || cx.getArg('help')) {
-        cx.stdout.write(MOUNT_CMD_USAGE_STRING);
+      if (cx.getArg('help')) {
+        cx.stdout.write([
+          'usage: mount [-t|--type <type>] [-n|--name <name>]',
+          'List mounted filesystems, or mount a new file system.',
+          '',
+          'If called with no arguments this command will list the current mounts.',
+          'If the -t argument is provided, this will defer to a mount.<type>',
+          'executable to mount a new file system.',
+          '',
+          'If -n is provided, it\'s passed to the mount command.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
 
-      if (cx.getArg('_')) {
+      if (cx.getArg('t')) {
         mountFileSystem_(cx);
       } else {
         listFileSystems_(cx);
@@ -820,9 +1462,15 @@ define(
      */
     var mountFileSystem_ = function(cx) {
       /** @type {string} */
-      var fsType = cx.getArg('_')[0];
+      var fsType = cx.getArg('t');
       var fsMountCmd = new Path('jsfs:/exe/mount.' + fsType);
-      cx.call(cx.fileSystemManager, fsMountCmd, {}).then(function() {
+
+      var arg = {};
+      var name = cx.getArg('name', null);
+      if (name)
+        arg['name'] = name;
+
+      cx.call(cx.fileSystemManager, fsMountCmd, arg).then(function() {
         cx.closeOk();
       }).catch(function(err) {
         cx.closeError(err);
@@ -831,7 +1479,8 @@ define(
 
     main.signature = {
       'help|h': '?',
-      '_': '@'
+      'type|t': '$',
+      'name|n': '$'
     };
 
     __es6_export__("default", main);
@@ -839,6 +1488,20 @@ define(
 );
 
 //# sourceMappingURL=mount.js.map
+// Copyright 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/mv",
   ["axiom/core/error", "axiom/fs/path", "exports"],
@@ -854,8 +1517,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var MV_CMD_USAGE_STRING = 'usage: mv sourceFile targetFile';
-
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
 
@@ -864,7 +1525,14 @@ define(
 
       var list = cx.getArg('_', []);
       if (list.length != 2 || cx.getArg('help')) {
-        cx.stdout.write(MV_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: mv <source> <destination>',
+          'Move a file to a new location.',
+          '',
+          'If both locations are on the same file system this will perform an',
+          'atomic move.  If not, it\'ll perform a copy and delete (see `cp -h` ',
+          'for the details on how copying works).'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
@@ -881,23 +1549,7 @@ define(
       /** @type {Path} */
       var toPath = Path.abs(pwd, toPathSpec);
 
-      var fs = cx.fileSystemManager;
-
-      /** @type {Promise<undefined>} */
-      var promise;
-
-      if (fromPath.root === toPath.root) {
-        promise = fs.move(fromPath, toPath);
-      } else {
-        promise =
-            fs.readFile(fromPath).then(function(readResult) {
-              return fs.writeFile(toPath, readResult.dataType, readResult.data);
-            }).then(function() {
-              return fs.unlink(fromPath);
-            });
-      }
-
-      promise
+      cx.fileSystemManager.move(fromPath, toPath)
         .then(function() {
           cx.closeOk();
         }).catch(function(err) {
@@ -916,45 +1568,74 @@ define(
 );
 
 //# sourceMappingURL=mv.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
 define("wash/exe/pwd", ["exports"], function(__exports__) {
- "use strict";
+  "use strict";
 
- function __es6_export__(name, value) {
-  __exports__[name] = value;
- }
+  function __es6_export__(name, value) {
+    __exports__[name] = value;
+  }
 
- // Copyright (c) 2015 Google Inc. All rights reserved.
- //
- // Licensed under the Apache License, Version 2.0 (the "License");
- // you may not use this file except in compliance with the License.
- // You may obtain a copy of the License at
- //
- //     http://www.apache.org/licenses/LICENSE-2.0
- //
- // Unless required by applicable law or agreed to in writing, software
- // distributed under the License is distributed on an "AS IS" BASIS,
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- // See the License for the specific language governing permissions and
- // limitations under the License.
+  var JsExecuteContext;
 
- /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
- var JsExecuteContext;
+  var main = function(cx) {
+    cx.ready();
 
- var main = function(cx) {
-   cx.ready();
-   /** @type {string} */
-   var pwd = cx.getEnv('$PWD',
-       cx.fileSystemManager.defaultFileSystem.rootPath.spec);
-   cx.closeOk(pwd);
- };
+    if (cx.getArg('help')) {
+      cx.stdout.write([
+        'usage: pwd',
+        'Return the present working directory.',
+        '',
+        'If the environment variable `$PWD` is not set, a reasonable default',
+        'directory will be returned.'
+      ].join('\r\n') + '\r\n');
+      cx.closeOk();
+      return;
+    }
 
- __es6_export__("main", main);
- __es6_export__("default", main);
+    /** @type {string} */
+    var pwd = cx.getEnv('$PWD',
+        cx.fileSystemManager.defaultFileSystem.rootPath.spec);
+    cx.closeOk(pwd);
+  };
 
- main.signature = {};
+  __es6_export__("main", main);
+  __es6_export__("default", main);
+
+  main.signature = {
+    'help|h': '?'
+  };
 });
 
 //# sourceMappingURL=pwd.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/readline",
   ["axiom/core/error", "axiom/core/completer", "axiom/core/ephemeral", "wash/termcap", "exports"],
@@ -1046,6 +1727,16 @@ define(
       var readline = new Readline(cx);
       cx.ready();
 
+      if (cx.getArg('help')) {
+        cx.stdout.write([
+          'usage: readline [-i <array>] [-p <string>]',
+          'Read a line of input from the terminal and return it to the caller.',
+        ].join('\r\n') + '\r\n');
+        cx.closeOk();
+        return;
+      }
+
+
       var inputHistory = cx.getArg('input-history', []);
       readline.read(inputHistory).then(
         function(value) {
@@ -1059,7 +1750,8 @@ define(
     __es6_export__("main", main);
 
     main.signature = {
-      'input-history': '@',
+      'help|h': '?',
+      'input-history|i': '@',
       'prompt-string|p': '$'
     };
 
@@ -1815,6 +2507,20 @@ define(
 );
 
 //# sourceMappingURL=readline.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/rm",
   ["axiom/core/error", "axiom/fs/path", "exports"],
@@ -1830,8 +2536,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var RM_CMD_USAGE_STRING = 'usage: rm file ...';
-
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
 
@@ -1840,7 +2544,13 @@ define(
 
       var list = cx.getArg('_', []);
       if (list.length === 0  || cx.getArg('help')) {
-        cx.stdout.write(RM_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: rm <path> ...',
+          'Remove one or more paths.',
+          '',
+          'This will remove files and directories without a second thought.  Be',
+          'careful.'
+        ].join('\r\n') + '\r\n');
         cx.closeOk();
         return;
       }
@@ -1850,7 +2560,7 @@ define(
 
       var rmNext = function() {
         if (!list.length) {
-          return;
+          return null;
         }
 
         /** @type {string} */
@@ -1864,7 +2574,8 @@ define(
           })
           .catch(function(e) {
             errors = true;
-            cx.stdout.write('rm: ' + path.originalSpec + ': ' + e.toString() + '\n');
+            cx.stdout.write('rm: ' + path.originalSpec + ': ' + e.toString() +
+                '\n');
             return rmNext();
           });
       };
@@ -1889,6 +2600,20 @@ define(
 );
 
 //# sourceMappingURL=rm.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/touch",
   ["axiom/core/error", "axiom/fs/path", "exports"],
@@ -1904,8 +2629,6 @@ define(
     var Path;
     Path = axiom$fs$path$$["default"];
 
-    var TOUCH_CMD_USAGE_STRING = 'usage: touch [file...]';
-
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
 
@@ -1914,7 +2637,10 @@ define(
 
       var list = cx.getArg('_', []);
       if (!list.length || cx.getArg('help')) {
-        cx.stdout.write(TOUCH_CMD_USAGE_STRING + '\n');
+        cx.stdout.write([
+          'usage: touch <path> ...',
+          'Create one or more empty files.'
+        ].join('\r\n') + '\r\n');
         return cx.closeOk();
       }
 
@@ -1923,7 +2649,7 @@ define(
 
       var touchNext = function() {
         if (!list.length) {
-          return;
+          return null;
         }
 
         /** @type {string} */
@@ -1965,6 +2691,20 @@ define(
 );
 
 //# sourceMappingURL=touch.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/exe/wash",
   ["axiom/core/error", "axiom/fs/arguments", "axiom/fs/data_type", "axiom/fs/base/file_system_manager", "axiom/fs/stream/memory_stream_buffer", "axiom/fs/nested_stdio", "axiom/fs/base/open_context", "axiom/fs/path", "axiom/fs/seek_whence", "axiom/fs/js/file_system", "axiom/fs/js/entry", "wash/parse", "wash/termcap", "wash/washrc", "wash/version", "exports"],
@@ -2024,6 +2764,9 @@ define(
 
     /** @typedef ExecuteContext$$module$axiom$fs$base$execute_context */
     var ExecuteContext;
+
+    /** @typedef FileSystem$$module$axiom$fs$base$file_system */
+    var FileSystem;
 
     /** @typedef JsExecuteContext$$module$axiom$fs$js$execute_context */
     var JsExecuteContext;
@@ -2114,6 +2857,7 @@ define(
         /**
          * @param {Wash} wash
          * @param {JsExecuteContext} cx
+         * @return {void}
          */
         function(wash, cx) {
           cx.ready();
@@ -2133,7 +2877,9 @@ define(
               wash.executeContext.setEnv('$PWD', path.spec);
               cx.closeOk();
             }
-          );
+          ).catch(function(err) {
+            cx.closeError(err);
+          });
         }
       ],
 
@@ -2142,6 +2888,7 @@ define(
         /**
          * @param {Wash} wash
          * @param {JsExecuteContext} cx
+         * @return {void}
          */
         function(wash, cx) {
           cx.ready();
@@ -2160,6 +2907,7 @@ define(
         /**
          * @param {Wash} wash
          * @param {JsExecuteContext} cx
+         * @return {void}
          */
         function(wash, cx) {
           cx.ready();
@@ -2184,6 +2932,7 @@ define(
         /**
          * @param {Wash} wash
          * @param {JsExecuteContext} cx
+         * @return {void}
          */
         function(wash, cx) {
           cx.ready();
@@ -2225,6 +2974,21 @@ define(
 
       cx.ready();
 
+      if (cx.getArg('help')) {
+        cx.stdout.write([
+          'usage: wash [--no-welcome]',
+          'Read-eval-print-loop.',
+          '',
+          'This command will read a line of text from the user, evaluate it as',
+          'a command, print the result, and start over again.',
+          '',
+          'If the --no-welcome argument is provided, the startup welcome message',
+          'will not be printed.'
+        ].join('\r\n') + '\r\n');
+        cx.closeOk();
+        return;
+      }
+
       if (cx.getArg('welcome', true)) {
         cx.stdout.write('Welcome to wash version ' + version + '.\n');
         cx.stdout.write('Type `exit` or Ctrl-D to exit.\n');
@@ -2232,9 +2996,9 @@ define(
 
       var repl = wash.readEvalPrintLoop.bind(wash);
       wash.loadFile(wash.historyFile).then(function(history) {
-       if (history) {
-         this.inputHistory = history;
-       }
+        if (history) {
+          this.inputHistory = history;
+        }
         this.executeWashrc().then(function() {
           repl();
         });
@@ -2243,7 +3007,8 @@ define(
     });
 
     Wash.main.signature = {
-      'welcome': '?'
+      'help|h': '?',
+      'welcome|w': '?'
     };
 
     /**
@@ -2311,14 +3076,60 @@ define(
     };
 
     /**
+      * @typedef {{fileSystem: !FileSystem, statResult: !StatResult, path: !Path}}
+      */
+    var FindExecutableResult;
+
+    /**
+      * Returns the StatResult of a builtin command given its path, or null if
+      * path does not resolve to a known builtin command.
+      *
+      * @param {!string} pathSpec
+      * @return {!Promise<!FindExecutableResult>}
+      */
+    Wash.prototype.findBuiltinOrExecutable = function(pathSpec) {
+      return this.findBuiltin(pathSpec).then(function(result) {
+        if (result) {
+          return Promise.resolve(result);
+        }
+
+        return this.findExecutable(pathSpec);
+      }.bind(this));
+    };
+
+    /**
+      * Returns the StatResult of a builtin command given its path, or null if
+      * path does not resolve to a known builtin command.
+      *
+      * @param {!string} pathSpec
+      * @return {!Promise<?FindExecutableResult>}
+      */
+    Wash.prototype.findBuiltin = function(pathSpec) {
+      var builtinPath = this.builtinsFS.rootPath.combine(pathSpec);
+      return this.builtinsFS.stat(builtinPath).then(
+        function(statResult) {
+          return Promise.resolve({
+            fileSystem: this.builtinsFS,
+            statResult: statResult,
+            path: builtinPath
+          });
+        }.bind(this)
+      ).catch(function(error) {
+        if (AxiomError.NotFound.test(error))
+          return null;
+        return Promise.reject(error);
+      });
+    };
+
+    /**
      * @param {string} pathSpec
-     * @return {!Promise<!{path: !Path, statResult: StatResult}>}
+     * @return {!Promise<!FindExecutableResult>}
      */
     Wash.prototype.findExecutable = function(pathSpec) {
       var rootPath = this.fileSystemManager.defaultFileSystem.rootPath;
       var searchList = this.executeContext.getEnv('@PATH', [rootPath.spec]);
 
-      /** @type {function(): !Promise<!{path: !Path, statResult: StatResult}>} */
+      /** @type {function(): !Promise<!FindExecutableResult>} */
       var searchNextPath = function() {
         if (!searchList.length)
           return Promise.reject(new AxiomError.NotFound('path', pathSpec));
@@ -2327,11 +3138,15 @@ define(
         var currentPath = new Path(currentPrefix).combine(pathSpec);
         return this.fileSystemManager.stat(currentPath).then(
           function(statResult) {
-            if (statResult.mode & Path.Mode.X)
-              return Promise.resolve({path: currentPath,
-                                      statResult: statResult});
+            if (statResult.mode & Path.Mode.X) {
+              return Promise.resolve({
+                fileSystem: this.fileSystemManager,
+                path: currentPath,
+                statResult: statResult
+              });
+            }
             return searchNextPath();
-          }
+          }.bind(this)
         ).catch(function(value) {
           if (AxiomError.NotFound.test(value))
             return searchNextPath();
@@ -2350,7 +3165,7 @@ define(
       return this.findExecutable('readline').then(
         function(result) {
           return this.executeContext.call(
-              this.fileSystemManager,
+              result.fileSystem,
               result.path,
               { 'prompt-string': this.promptString_,
                 'input-history': this.inputHistory
@@ -2400,15 +3215,7 @@ define(
                 'Unexpected type from readline: ' + (typeof result)));
           }
 
-          return this.evaluate(result).then(
-            function(value) {
-              if (typeof value != 'undefined' && typeof value != 'number' &&
-                  value !== null) {
-                this.println(JSON.stringify(value, null, '  '));
-              }
-
-              return Promise.resolve(value);
-            }.bind(this));
+          return this.evaluate(result);
         }.bind(this)
       ).catch(
         function(error) {
@@ -2501,68 +3308,51 @@ define(
      * @return {!Promise<*>}
      */
     Wash.prototype.dispatch = function(pathSpec, argv, redirPathSpec, redirMode) {
-      var path = this.builtinsFS.rootPath.combine(pathSpec);
-      return this.builtinsFS.stat(path).then(
-        function(/** StatResult */ statResult) {
-          if (redirPathSpec) {
-            // TODO: Support this.
-            throw new AxiomError.NotImplemented(
-                'I/O redirection is not supported for built-in commands yet.');
-          }
-          var arg = this.parseArgv(statResult.signature, argv);
-          return this.builtinsFS.createExecuteContext(
-              path, this.executeContext.stdio, arg).then(
-            function(/** ExecuteContext */ cx) {
-              return this.dispatchExecuteContext(cx);
-            }.bind(this));
-        }.bind(this)
-      ).catch(
-        function(error) {
-          if (!AxiomError.NotFound.test(error))
-            return error;
+      return this.findBuiltinOrExecutable(pathSpec).then(function(result) {
+        var arg = this.parseArgv(result.statResult.signature, argv);
 
-          return this.findExecutable(pathSpec).then(
-            function(/** {path: !Path, statResult: StatResult } */ result) {
-              var arg = this.parseArgv(result.statResult.signature, argv);
+        var stdio = new NestedStdio(this.executeContext.stdio);
+        var redirBuffer;
 
-              var stdio = new NestedStdio(this.executeContext.stdio);
-              var redirBuffer;
+        var cxPromises = [
+          result.fileSystem.createExecuteContext(result.path, stdio, arg)
+        ];
 
-              var cxPromises = [
-                this.fileSystemManager.createExecuteContext(
-                    result.path, stdio, arg)
-              ];
+        if (redirPathSpec) {
+          redirBuffer = new MemoryStreamBuffer();
+          stdio.stdout = redirBuffer.writableStream;
+          cxPromises.push(
+              this.fileSystemManager.createOpenContext(
+                  this.absPath(redirPathSpec), redirMode));
+        }
 
-              if (redirPathSpec) {
-                redirBuffer = new MemoryStreamBuffer();
-                stdio.stdout = redirBuffer.writableStream;
-                cxPromises.push(
-                    this.fileSystemManager.createOpenContext(
-                        this.absPath(redirPathSpec), redirMode));
+        return Promise.all(cxPromises).then(
+          function(cxs) {
+            var execCx = cxs[0];
+            var redirCx = cxs[1];
+
+            execCx.onClose.addListener(function(reason, value) {
+              if (reason === 'ok') {
+                if (typeof value !== 'undefined' && typeof value !== 'number' &&
+                    value !== null) {
+                  stdio.stdout.write(JSON.stringify(value, null, '  ') + '\n');
+                }
               }
 
-              return Promise.all(cxPromises).then(
-                function(cxs) {
-                  var execCx = cxs[0];
-                  var redirCx = cxs[1];
+              stdio.close();
+            });
 
-                  execCx.onClose.addListener(function() {
-                    stdio.close();
-                  });
-
-                  if (!!redirCx) {
-                    redirCx.open().then(function() {
-                      redirBuffer.onData.addListener(function(data) {
-                        redirCx.write(0, SeekWhence.End, DataType.UTF8String, data);
-                      });
-                      redirBuffer.resume();
-                    });
-                  }
-                  return this.dispatchExecuteContext(execCx);
-                }.bind(this));
-            }.bind(this));
-        }.bind(this)
-      );
+            if (!!redirCx) {
+              redirCx.open().then(function() {
+                redirBuffer.onData.addListener(function(data) {
+                  redirCx.write(0, SeekWhence.End, DataType.UTF8String, data);
+                });
+                redirBuffer.resume();
+              });
+            }
+            return this.dispatchExecuteContext(execCx);
+          }.bind(this));
+      }.bind(this));
     };
 
     /**
@@ -2666,18 +3456,19 @@ define(
      * @return {void}
      */
     Wash.prototype.onSignal_ = function(signal) {
-      console.log('Caught signal: ' + signal.name);
       this.executeContext.dispatchSignal(signal);
     };
   }
 );
 
 //# sourceMappingURL=wash.js.map
+// GENERATED BY grunt make_dir_module.
 define(
   "wash/exe_modules",
-  ["wash/exe/cat", "wash/exe/clear", "wash/exe/cp", "wash/exe/echo", "wash/exe/import", "wash/exe/ls", "wash/exe/mkdir", "wash/exe/mount.gdrive", "wash/exe/mount", "wash/exe/mv", "wash/exe/pwd", "wash/exe/readline", "wash/exe/rm", "wash/exe/touch", "wash/exe/wash", "exports"],
+  ["wash/exe/cat", "wash/exe/chrome", "wash/exe/clear", "wash/exe/cp", "wash/exe/echo", "wash/exe/import", "wash/exe/ls", "wash/exe/mkdir", "wash/exe/mount.gdrive", "wash/exe/mount", "wash/exe/mv", "wash/exe/pwd", "wash/exe/readline", "wash/exe/rm", "wash/exe/touch", "wash/exe/wash", "exports"],
   function(
     wash$exe$cat$$,
+    wash$exe$chrome$$,
     wash$exe$clear$$,
     wash$exe$cp$$,
     wash$exe$echo$$,
@@ -2702,55 +3493,72 @@ define(
     var m0;
     m0 = wash$exe$cat$$["default"];
     var m1;
-    m1 = wash$exe$clear$$["default"];
+    m1 = wash$exe$chrome$$["default"];
     var m2;
-    m2 = wash$exe$cp$$["default"];
+    m2 = wash$exe$clear$$["default"];
     var m3;
-    m3 = wash$exe$echo$$["default"];
+    m3 = wash$exe$cp$$["default"];
     var m4;
-    m4 = wash$exe$import$$["default"];
+    m4 = wash$exe$echo$$["default"];
     var m5;
-    m5 = wash$exe$ls$$["default"];
+    m5 = wash$exe$import$$["default"];
     var m6;
-    m6 = wash$exe$mkdir$$["default"];
+    m6 = wash$exe$ls$$["default"];
     var m7;
-    m7 = wash$exe$mount$gdrive$$["default"];
+    m7 = wash$exe$mkdir$$["default"];
     var m8;
-    m8 = wash$exe$mount$$["default"];
+    m8 = wash$exe$mount$gdrive$$["default"];
     var m9;
-    m9 = wash$exe$mv$$["default"];
+    m9 = wash$exe$mount$$["default"];
     var m10;
-    m10 = wash$exe$pwd$$["default"];
+    m10 = wash$exe$mv$$["default"];
     var m11;
-    m11 = wash$exe$readline$$["default"];
+    m11 = wash$exe$pwd$$["default"];
     var m12;
-    m12 = wash$exe$rm$$["default"];
+    m12 = wash$exe$readline$$["default"];
     var m13;
-    m13 = wash$exe$touch$$["default"];
+    m13 = wash$exe$rm$$["default"];
     var m14;
-    m14 = wash$exe$wash$$["default"];
+    m14 = wash$exe$touch$$["default"];
+    var m15;
+    m15 = wash$exe$wash$$["default"];
     var dir = {};
     __es6_export__("dir", dir);
     __es6_export__("default", dir);
     dir["cat"] = m0;
-    dir["clear"] = m1;
-    dir["cp"] = m2;
-    dir["echo"] = m3;
-    dir["import"] = m4;
-    dir["ls"] = m5;
-    dir["mkdir"] = m6;
-    dir["mount.gdrive"] = m7;
-    dir["mount"] = m8;
-    dir["mv"] = m9;
-    dir["pwd"] = m10;
-    dir["readline"] = m11;
-    dir["rm"] = m12;
-    dir["touch"] = m13;
-    dir["wash"] = m14;
+    dir["chrome"] = m1;
+    dir["clear"] = m2;
+    dir["cp"] = m3;
+    dir["echo"] = m4;
+    dir["import"] = m5;
+    dir["ls"] = m6;
+    dir["mkdir"] = m7;
+    dir["mount.gdrive"] = m8;
+    dir["mount"] = m9;
+    dir["mv"] = m10;
+    dir["pwd"] = m11;
+    dir["readline"] = m12;
+    dir["rm"] = m13;
+    dir["touch"] = m14;
+    dir["wash"] = m15;
   }
 );
 
 //# sourceMappingURL=exe_modules.js.map
+// Copyright (c) 2015 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/parse",
   ["axiom/core/error", "axiom/fs/arguments", "exports"],
@@ -3083,7 +3891,7 @@ define(
      *
      * @param {RegExp=} opt_pattern Optional pattern specifying what constitutes
      *   a valid run of characters.
-     * @return {string}
+     * @return {?(string|boolean|number)}
      */
     Parse.prototype.parseSloppyString = function(opt_pattern) {
       if (this.ch == '"' || this.ch == '\'')
@@ -3150,7 +3958,7 @@ define(
      *
      * @param {RegExp} pattern A pattern representing the characters to span.  MUST
      *   include the "global" RegExp flag.
-     * @return {string}
+     * @return {?(string|boolean|number)}
      */
     Parse.prototype.parsePattern = function(pattern) {
       if (!pattern.global)
@@ -3165,7 +3973,17 @@ define(
       this.pos = pattern.lastIndex - 1;
       this.advance(1);
 
-      return ary[0];
+      var res = ary[0];
+      if (!isNaN(+res))
+        res = +res;
+      else if (res === 'true')
+        res = true;
+      else if (res === 'false')
+        res = false;
+      else if (res === 'null')
+        res = null;
+
+      return res;
     };
 
     /**
@@ -3197,6 +4015,28 @@ define(
 );
 
 //# sourceMappingURL=parse.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * Left pad a string to a given length using a given character.
+ *
+ * @param {string} str The string to pad.
+ * @param {number} length The desired length.
+ * @param {string} opt_ch The optional padding character, defaults to ' '.
+ * @return {string} The padded string.
+ */
 define("wash/string_utils", ["exports"], function(__exports__) {
   "use strict";
 
@@ -3238,6 +4078,31 @@ define("wash/string_utils", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=string_utils.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/**
+ * @constructor
+ *
+ * Class used to convert lib.replaceVars-like strings into actual terminal
+ * escape.
+ *
+ * This is roughly analogous to Linux's termcap library.
+ *
+ * Instances of this class are able to translate both outgoing strings and
+ * incoming key sequences.
+ */
 define("wash/termcap", ["exports"], function(__exports__) {
   "use strict";
 
@@ -3245,31 +4110,6 @@ define("wash/termcap", ["exports"], function(__exports__) {
     __exports__[name] = value;
   }
 
-  // Copyright 2014 Google Inc. All rights reserved.
-  //
-  // Licensed under the Apache License, Version 2.0 (the "License");
-  // you may not use this file except in compliance with the License.
-  // You may obtain a copy of the License at
-  //
-  //     http://www.apache.org/licenses/LICENSE-2.0
-  //
-  // Unless required by applicable law or agreed to in writing, software
-  // distributed under the License is distributed on an "AS IS" BASIS,
-  // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  // See the License for the specific language governing permissions and
-  // limitations under the License.
-
-  /**
-   * @constructor
-   *
-   * Class used to convert lib.replaceVars-like strings into actual terminal
-   * escape.
-   *
-   * This is roughly analogous to Linux's termcap library.
-   *
-   * Instances of this class are able to translate both outgoing strings and
-   * incoming key sequences.
-   */
   var Termcap = function() {};
   __es6_export__("Termcap", Termcap);
   __es6_export__("default", Termcap);
@@ -3582,6 +4422,7 @@ define("wash/termcap", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=termcap.js.map
+// GENERATED BY grunt make_version_module.
 define("wash/version", ["exports"], function(__exports__) {
   "use strict";
 
@@ -3595,6 +4436,20 @@ define("wash/version", ["exports"], function(__exports__) {
 });
 
 //# sourceMappingURL=version.js.map
+// Copyright 2014 Google Inc. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 define(
   "wash/washrc",
   ["axiom/fs/path", "axiom/core/error", "axiom/fs/data_type", "exports"],
