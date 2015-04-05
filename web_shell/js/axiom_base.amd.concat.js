@@ -116,10 +116,10 @@ define("axiom/core/completer", ["exports"], function(__exports__) {
 
   var Completer = function() {
     /** @type {function(T)} */
-    this.resolve;
+    this.resolve = function() {};
 
     /** @type {function(*)} */
-    this.reject;
+    this.reject = function() {};
 
     /** @type {!Promise<T>} */
     this.promise = new Promise(

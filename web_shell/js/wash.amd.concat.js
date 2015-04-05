@@ -12,137 +12,136 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-define(
-  "wash/chrome_agent_client",
-  ["axiom/core/error", "axiom/core/completer", "exports"],
-  function(axiom$core$error$$, axiom$core$completer$$, __exports__) {
-    "use strict";
+define("wash/chrome_agent_client", ["exports"], function(__exports__) {
+  "use strict";
 
-    function __es6_export__(name, value) {
-      __exports__[name] = value;
-    }
-
-    var AxiomError;
-    AxiomError = axiom$core$error$$["default"];
-    var Completer;
-    Completer = axiom$core$completer$$["default"];
-    var chromeAgentClient = {};
-    __es6_export__("chromeAgentClient", chromeAgentClient);
-    __es6_export__("default", chromeAgentClient);
-
-    chromeAgentClient.AGENT_APP_ID_ = 'lfbhahfblgmngkkgbgbccedhhnkkhknb';
-    chromeAgentClient.AGENT_INSTALL_URL_ =
-        'https://chrome.google.com/webstore/detail/' +
-        chromeAgentClient.AGENT_APP_ID_;
-
-    /**
-     * @return {void}
-     */
-    chromeAgentClient.installAgent = function() {
-      window.open(chromeAgentClient.AGENT_INSTALL_URL_);
-    };
-
-    /**
-     * @param {string} api
-     * @return {void}
-     */
-    chromeAgentClient.openApiOnlineDoc = function(api) {
-      var urlSuffix = 'api_index';
-      if (api) {
-        var parts = api.split('.');
-        if (parts[0] === 'chrome')
-          parts.shift();
-
-        if (parts.length == 1)
-          urlSuffix = parts[0];
-        else if (parts.length == 2)
-          urlSuffix = parts[0] + '#method-' + parts[1];
-        else if (parts.length === 3)
-          urlSuffix = parts[0] + '_' + parts[1] + '#method-' + parts[2];
-      }
-      var url = 'https://developer.chrome.com/extensions/' + urlSuffix;
-      window.open(url);
-    };
-
-    /**
-     * @param {!string} api
-     * @param {!Array<*>} args
-     * @param {!{timeout: number}} options
-     * @return {!Promise<*>} Result returned by the API.
-     */
-    chromeAgentClient.callApi = function(api, args, options) {
-      if (!/^chrome./.test(api))
-        api = 'chrome.' + api;
-      return chromeAgentClient.sendRequest_(
-        {
-          type: 'call_api',
-          api: api,
-          args: args,
-          options: options
-        }
-      );
-    };
-
-    /**
-     * @param {!string} code
-     * @param {!(Array<number>|string)} tabIds
-     * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
-     * @return {!Promise<*>} Result returned by the API.
-     */
-    chromeAgentClient.executeScriptInTabs = function(code, tabIds, options) {
-      return chromeAgentClient.sendRequest_(
-        {
-          type: 'execute_script',
-          tabIds: tabIds,
-          code: code,
-          options: options
-        }
-      );
-    };
-
-    /**
-     * @param {!string} css
-     * @param {!(Array<number>|string)} tabIds
-     * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
-     * @return {!Promise<*>} Result returned by the API.
-     */
-    chromeAgentClient.insertCssIntoTabs = function(css, tabIds, options) {
-      return chromeAgentClient.sendRequest_(
-        {
-          type: 'insert_css',
-          tabIds: tabIds,
-          css: css,
-          options: options
-        }
-      );
-    };
-
-    /**
-     * @param {!Object<string, *>} request
-     * @return {!Promise<*>} Result returned by the API.
-     */
-    chromeAgentClient.sendRequest_ = function(request) {
-      return new Promise(function(resolve, reject) {
-        chrome.runtime.sendMessage(
-          chromeAgentClient.AGENT_APP_ID_,
-          request,
-          {}, // options
-          function(response) {
-            if (typeof response === 'undefined') {
-              reject(new AxiomError.Missing(
-                  'Chrome Agent is not installed'));
-            } else if (!response.success) {
-              reject(new AxiomError.Runtime(
-                  'Chrome Agent error: ' + response.error));
-            } else {
-              resolve(response.result);
-            }
-          }
-        );
-      });
-    };
+  function __es6_export__(name, value) {
+    __exports__[name] = value;
   }
-);
+
+  var chromeAgentClient = {};
+  __es6_export__("chromeAgentClient", chromeAgentClient);
+  __es6_export__("default", chromeAgentClient);
+
+  chromeAgentClient.ErrorSendingRequest = function(message) {
+    this.message = message;
+  };
+
+  chromeAgentClient.ErrorExecutingRequest = function(message) {
+    this.message = message;
+  };
+
+  chromeAgentClient.AGENT_APP_ID_ = 'lfbhahfblgmngkkgbgbccedhhnkkhknb';
+  chromeAgentClient.AGENT_INSTALL_URL_ =
+      'https://chrome.google.com/webstore/detail/' +
+      chromeAgentClient.AGENT_APP_ID_;
+
+  /**
+   * @return {void}
+   */
+  chromeAgentClient.installAgent = function() {
+    window.open(chromeAgentClient.AGENT_INSTALL_URL_);
+  };
+
+  /**
+   * @param {string} api
+   * @return {void}
+   */
+  chromeAgentClient.openApiOnlineDoc = function(api) {
+    var urlSuffix = 'api_index';
+    if (api) {
+      var parts = api.split('.');
+      if (parts[0] === 'chrome')
+        parts.shift();
+
+      if (parts.length == 1)
+        urlSuffix = parts[0];
+      else if (parts.length == 2)
+        urlSuffix = parts[0] + '#method-' + parts[1];
+      else if (parts.length === 3)
+        urlSuffix = parts[0] + '_' + parts[1] + '#method-' + parts[2];
+    }
+    var url = 'https://developer.chrome.com/extensions/' + urlSuffix;
+    window.open(url);
+  };
+
+  /**
+   * @param {!string} api
+   * @param {!Array<*>} args
+   * @param {!{timeout: number}} options
+   * @return {!Promise<*>} Result returned by the API.
+   */
+  chromeAgentClient.callApi = function(api, args, options) {
+    if (!/^chrome./.test(api))
+      api = 'chrome.' + api;
+    return chromeAgentClient.sendRequest_(
+      {
+        type: 'call_api',
+        api: api,
+        args: args,
+        options: options
+      }
+    );
+  };
+
+  /**
+   * @param {!string} code
+   * @param {!(Array<number>|string)} tabIds
+   * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
+   * @return {!Promise<*>} Result returned by the API.
+   */
+  chromeAgentClient.executeScriptInTabs = function(code, tabIds, options) {
+    return chromeAgentClient.sendRequest_(
+      {
+        type: 'execute_script',
+        tabIds: tabIds,
+        code: code,
+        options: options
+      }
+    );
+  };
+
+  /**
+   * @param {!string} css
+   * @param {!(Array<number>|string)} tabIds
+   * @param {!{allFrames: boolean, runAt: string, timeout: number}} options
+   * @return {!Promise<*>} Result returned by the API.
+   */
+  chromeAgentClient.insertCssIntoTabs = function(css, tabIds, options) {
+    return chromeAgentClient.sendRequest_(
+      {
+        type: 'insert_css',
+        tabIds: tabIds,
+        css: css,
+        options: options
+      }
+    );
+  };
+
+  /**
+   * @param {!Object<string, *>} request
+   * @return {!Promise<*>} Result returned by the API.
+   */
+  chromeAgentClient.sendRequest_ = function(request) {
+    return new Promise(function(resolve, reject) {
+      chrome.runtime.sendMessage(
+        chromeAgentClient.AGENT_APP_ID_,
+        request,
+        {}, // options
+        function(response) {
+          if (chrome.runtime.lastError) {
+            reject(new chromeAgentClient.ErrorSendingRequest(
+                chrome.runtime.lastError.message));
+          } else if (!response.success) {
+            reject(new chromeAgentClient.ErrorExecutingRequest(response.error));
+          } else {
+            resolve(response.result);
+          }
+        }
+      );
+    });
+  };
+});
 
 //# sourceMappingURL=chrome_agent_client.js.map
 // Copyright 2014 Google Inc. All rights reserved.
@@ -364,13 +363,14 @@ define(
             cx.stdout.write(result + '\n');
           }
           cx.closeOk();
-        }).catch(function(err) {
-          if (AxiomError.Missing.test(err)) {
+        }).catch(function(error) {
+          if (error instanceof chromeAgentClient.ErrorSendingRequest) {
             cx.closeError(new AxiomError.Missing(
                 'This command requires Chrome Agent extension to be installed. ' +
-                'Rerun with the --install-agent switch to install.'));
+                'Rerun with the --install-agent switch to install ' +
+                '(' + error.message + ')'));
           } else {
-            cx.closeError(err);
+            cx.closeError(error);
           }
         });
     };
@@ -1322,8 +1322,6 @@ define(
     /** @typedef FileSystemManager$$module$axiom$fs$base$file_system_manager */
     var FileSystemManager;
 
-    var MOUNT_GDRIVE_CMD_USAGE_STRING = 'usage: mount.gdrive\n';
-
     var main = function(cx) {
       cx.ready();
 
@@ -1400,8 +1398,6 @@ define(
 
     /** @typedef FileSystemManager$$module$axiom$fs$base$file_system_manager */
     var FileSystemManager;
-
-    var MOUNT_CMD_USAGE_STRING = 'usage: mount [<filesystem type>]\n';
 
     var main = function(cx) {
       cx.ready();
